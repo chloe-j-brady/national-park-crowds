@@ -82,6 +82,7 @@ Rules:
 - Every view needs an **empty state** message when nothing matches.
 - Use **key functions** in D3 data joins and ~300ms transitions between states.
 - Decide per view whether axes rescale or stay fixed, and note the reason (it goes in the write-up).
+- **When months are brushed, the labels must say so.** The park ranking's axis title and caption change from "Avg. visits per year" to say **"visits in the selected months"** (e.g. "Avg. visits per year in Jun–Aug"). The region bars' y-axis title needs the same change. Otherwise a Jun–Aug total reads like a full-year number.
 
 ## Design conventions
 

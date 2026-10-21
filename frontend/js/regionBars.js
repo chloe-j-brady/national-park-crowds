@@ -1,12 +1,9 @@
-// One color per NPS region, loosely matching its landscape. Every view will use these.
-// (Moves to its own colors.js once a second view needs it.)
-const REGION_COLORS = {
-  "Intermountain": "#7c3d18", // red rock canyons
-  "Pacific West": "#09659f",  // Pacific Ocean
-  "Alaska": "#611ec1",        // northern lights
-  "Southeast": "#167e1c",     // forests and swamps
-  "Northeast": "#b1236d",     // autumn foliage
-  "Midwest": "#9c8e12",       // prairie grass
+// Layout numbers for this chart. Named REGION_... because all our script files share
+// one global namespace, so two files can't both declare "margin".
+const REGION_LAYOUT = {
+  width: 720,
+  height: 400,
+  margin: { top: 44, right: 16, bottom: 56, left: 72 },
 };
 
 // Turn the monthly rows into one summary object per region, busiest parks first
@@ -42,92 +39,139 @@ function summarizeByRegion(rows) {
   return regions;
 }
 
-function drawRegionBars(rows) {
-  const regions = summarizeByRegion(rows);
+// Runs once: create the SVG and the empty groups that updateRegionBars() fills in
+function setupRegionBars() {
+  const { width, height, margin } = REGION_LAYOUT;
+  const innerWidth = width - margin.left - margin.right;
+  const innerHeight = height - margin.top - margin.bottom;
 
-  // Margin convention: the inner width/height is the plot area; margins hold the axes
-  const margin = { top: 44, right: 16, bottom: 56, left: 72 };
-  const width = 720 - margin.left - margin.right;
-  const height = 400 - margin.top - margin.bottom;
-
-  // viewBox makes the SVG scale down to fit narrow screens
   const svg = d3.select("#region-chart")
     .append("svg")
-    .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`);
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`); // lets the SVG shrink on narrow screens
 
-  // Everything inside g is shifted so (0, 0) is the top-left of the plot area
-  const g = svg.append("g")
+  // Everything inside .plot is shifted so (0, 0) is the top-left of the plot area
+  const plot = svg.append("g")
+    .attr("class", "plot")
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+  plot.append("g")
+    .attr("class", "axis x-axis")
+    .attr("transform", `translate(0, ${innerHeight})`);
+
+  plot.append("g")
+    .attr("class", "axis y-axis");
+
+  // Axis titles don't change, so they're drawn here once
+  plot.append("text")
+    .attr("class", "axis-title")
+    .attr("x", innerWidth / 2)
+    .attr("y", innerHeight + 44)
+    .attr("text-anchor", "middle")
+    .text("NPS region");
+
+  plot.append("text")
+    .attr("class", "axis-title")
+    .attr("transform", "rotate(-90)") // rotated, so x now moves up/down and y left/right
+    .attr("x", -innerHeight / 2)
+    .attr("y", -54)
+    .attr("text-anchor", "middle")
+    .text("Avg. visits per park per year");
+
+  // Shown only when no data matches
+  plot.append("text")
+    .attr("class", "empty-message")
+    .attr("x", innerWidth / 2)
+    .attr("y", innerHeight / 2)
+    .attr("text-anchor", "middle");
+}
+
+// Runs every time the data changes: recompute, rescale, and move the bars
+function updateRegionBars(rows) {
+  const regions = summarizeByRegion(rows);
+  const { width, height, margin } = REGION_LAYOUT;
+  const innerWidth = width - margin.left - margin.right;
+  const innerHeight = height - margin.top - margin.bottom;
+
+  const plot = d3.select("#region-chart .plot");
 
   // x: one evenly spaced slot per region; padding leaves gaps between bars
   const x = d3.scaleBand()
     .domain(regions.map(d => d.region))
-    .range([0, width])
+    .range([0, innerWidth])
     .padding(0.3);
 
-  // y: visits -> pixels. Range is [height, 0] because SVG y grows downward
+  // y: visits -> pixels. Range is [innerHeight, 0] because SVG y grows downward.
+  // The domain follows the data shown, so the axis rescales when the data is filtered.
   const y = d3.scaleLinear()
-    .domain([0, d3.max(regions, d => d.avgPerParkYear)])
-    .range([height, 0])
+    .domain([0, d3.max(regions, d => d.avgPerParkYear) || 1]) // || 1 avoids a [0, undefined] domain when empty
+    .range([innerHeight, 0])
     .nice();
 
   // Readable numbers: 2449160 -> "2.4M", 216762 -> "220k"
   const formatVisits = d3.format(".2s");
+  const duration = 300;
 
-  // Bars: one rect per region (the key function d => d.region matches bars to regions)
-  g.selectAll(".bar")
+  // Bars. The key function (d => d.region) keeps each bar attached to its region.
+  // New bars start flat on the baseline, then grow during the transition.
+  // Color is set on enter only: a region's color never changes.
+  plot.selectAll(".bar")
     .data(regions, d => d.region)
-    .join("rect")
-    .attr("class", "bar")
+    .join(enter => enter.append("rect")
+      .attr("class", "bar")
+      .attr("x", d => x(d.region))
+      .attr("y", innerHeight)
+      .attr("height", 0)
+      .attr("fill", d => REGION_COLORS[d.region]))
+    .transition()
+    .duration(duration)
     .attr("x", d => x(d.region))
     .attr("y", d => y(d.avgPerParkYear))
     .attr("width", x.bandwidth())
-    .attr("height", d => height - y(d.avgPerParkYear))
-    .attr("fill", d => REGION_COLORS[d.region]);
+    .attr("height", d => innerHeight - y(d.avgPerParkYear));
 
   // Label above each bar, line 1: the value
-  g.selectAll(".bar-value")
+  plot.selectAll(".bar-value")
     .data(regions, d => d.region)
-    .join("text")
-    .attr("class", "bar-value")
+    .join(enter => enter.append("text")
+      .attr("class", "bar-value")
+      .attr("text-anchor", "middle")
+      .attr("x", d => x(d.region) + x.bandwidth() / 2)
+      .attr("y", innerHeight))
+    .text(d => formatVisits(d.avgPerParkYear))
+    .transition()
+    .duration(duration)
     .attr("x", d => x(d.region) + x.bandwidth() / 2)
-    .attr("y", d => y(d.avgPerParkYear) - 22)
-    .attr("text-anchor", "middle")
-    .text(d => formatVisits(d.avgPerParkYear));
+    .attr("y", d => y(d.avgPerParkYear) - 22);
 
   // Label above each bar, line 2: how many parks the region has
-  g.selectAll(".bar-parks")
+  plot.selectAll(".bar-parks")
     .data(regions, d => d.region)
-    .join("text")
-    .attr("class", "bar-parks")
+    .join(enter => enter.append("text")
+      .attr("class", "bar-parks")
+      .attr("text-anchor", "middle")
+      .attr("x", d => x(d.region) + x.bandwidth() / 2)
+      .attr("y", innerHeight))
+    .text(d => d.parkCount === 1 ? "1 park" : d.parkCount + " parks")
+    .transition()
+    .duration(duration)
     .attr("x", d => x(d.region) + x.bandwidth() / 2)
-    .attr("y", d => y(d.avgPerParkYear) - 7)
-    .attr("text-anchor", "middle")
-    .text(d => d.parkCount === 1 ? "1 park" : d.parkCount + " parks");
+    .attr("y", d => y(d.avgPerParkYear) - 7);
 
-  // Axes
-  g.append("g")
-    .attr("class", "axis")
-    .attr("transform", `translate(0, ${height})`)
+  // Axes animate to their new scales along with the bars
+  plot.select(".x-axis")
+    .transition()
+    .duration(duration)
     .call(d3.axisBottom(x));
 
-  g.append("g")
-    .attr("class", "axis")
+  plot.select(".y-axis")
+    .transition()
+    .duration(duration)
     .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format("~s")));
 
-  // Axis titles
-  g.append("text")
-    .attr("class", "axis-title")
-    .attr("x", width / 2)
-    .attr("y", height + 44)
-    .attr("text-anchor", "middle")
-    .text("NPS region");
-
-  g.append("text")
-    .attr("class", "axis-title")
-    .attr("transform", "rotate(-90)") // rotated, so x now moves up/down and y left/right
-    .attr("x", -height / 2)
-    .attr("y", -54)
-    .attr("text-anchor", "middle")
-    .text("Avg. visits per park per year");
+  // Empty state: show a message and hide the value axis (its [0, 1] placeholder ticks mean nothing)
+  const isEmpty = regions.length === 0;
+  plot.select(".empty-message").text(isEmpty ? "No visits match this selection." : "");
+  plot.select(".y-axis").style("display", isEmpty ? "none" : null);
 }

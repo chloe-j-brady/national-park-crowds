@@ -38,6 +38,7 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px 24px;
+  margin-bottom: 24px;
 }
 
 .view h2 {
@@ -57,12 +58,37 @@ h1 {
   text-align: center;
 }
 
-/* Chart text and axes: quiet gray, so the bars stand out */
+/* Region legend: one colored square + name per region, wraps on narrow screens */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 8px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+/* Charts draw at their real pixel size (width/height attributes) and only
+   shrink, never grow, when the space is narrower. height: auto keeps the proportions. */
 svg {
   display: block;
-  width: 100%;
+  max-width: 100%;
   height: auto;
 }
+
+/* Chart text and axes: quiet gray, so the bars stand out */
 
 .axis path,
 .axis line {
@@ -88,4 +114,25 @@ svg {
 .bar-parks {
   fill: var(--text-secondary);
   font-size: 12px;
+}
+
+/* Park ranking: small text to fit 11.5px rows */
+.park-names text {
+  font-size: 11px;
+  fill: var(--text-primary);
+}
+
+.park-names path {
+  display: none; /* no vertical axis line next to the names */
+}
+
+.bar-label {
+  fill: var(--text-secondary);
+  font-size: 10px;
+  dominant-baseline: middle; /* centers the text on its y position */
+}
+
+.empty-message {
+  fill: var(--text-secondary);
+  font-size: 14px;
 }

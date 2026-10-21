@@ -18,17 +18,34 @@
       <div id="region-chart"></div>
       <p class="caption">Average recreation visits per park per year, by NPS region (2022–2025). Labels show how many parks each region has.</p>
     </section>
+
+    <section class="view">
+      <h2>Which parks are busiest, and which are quiet?</h2>
+      <div id="park-legend" class="legend"></div>
+      <div id="park-chart"></div>
+      <p class="caption">Average recreation visits per year, 2022–2025, busiest to quietest. Bars are colored by NPS region.</p>
+    </section>
   </main>
 
-  <!-- Order matters: D3 first, then our files that use it -->
+  <!-- Order matters: D3 first, then colors.js (used by both views), then the views -->
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/colors.js"></script>
   <script src="js/regionBars.js"></script>
+  <script src="js/parkRanking.js"></script>
   <script>
     async function start() {
       try {
         const rows = await fetchVisits();
-        drawRegionBars(rows);
+
+        // Build each view's empty frame once...
+        setupRegionBars();
+        setupParkRanking();
+        drawRegionLegend("#park-legend");
+
+        // ...then fill it with data. Linking will call these again with filtered rows.
+        updateRegionBars(rows);
+        updateParkRanking(rows);
       } catch (error) {
         console.error(error);
         document.querySelector("#region-chart").innerHTML =
