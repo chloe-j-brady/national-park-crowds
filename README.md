@@ -12,18 +12,26 @@ The raw CSV is included at `backend/data/raw/nps_visits_raw.csv`.
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.11+ (required by pandas 3)
 - A modern web browser
 
 ## How to run
 
-Open **two terminals** from the project folder.
+**One-time setup** (from the project folder): create a virtual environment and install the backend packages.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r backend/requirements.txt
+```
+
+Then open **two terminals** from the project folder.
 
 **Terminal 1 — backend (port 8000):**
 
 ```bash
+source .venv/bin/activate
 cd backend
-pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 

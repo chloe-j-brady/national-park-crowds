@@ -11,7 +11,7 @@ I'm Chloe, a CS senior at FSU taking Intro to Data Visualization. My professor a
 5. **After writing code, point out the 1–2 trickiest parts** and explain them so I could say them out loud to my professor.
 6. **When debugging, explain what was wrong and why** — don't silently rewrite my code.
 7. I care about visual polish — when layout, color or typography come up, suggest what would genuinely look good and why.
-8. **Commit after each working step** with a short, clear message (I'll review before pushing). Never commit secrets, virtual environments or `node_modules`.
+8. **Commit after each working step** with a short, clear message (I'll review before pushing). Never commit secrets, virtual environments or `node_modules`. Do not add Co-Authored-By, Claude-Session, or any other AI attribution lines to commit messages.
 
 ## The assignment (summary)
 
@@ -93,6 +93,8 @@ Rules:
 ## Stack and structure
 
 - **Backend:** Python, FastAPI + pandas, run with uvicorn on port **8000**. Load and clean the CSV **once at startup**. CORS enabled.
+  - Packages live in a virtual environment at the project root (`.venv/`, git-ignored). Exact versions are pinned in `backend/requirements.txt`.
+  - CORS allows only `http://localhost:5173` and `http://127.0.0.1:5173` (the `ALLOWED_ORIGINS` list in `backend/main.py`).
 - **Frontend:** plain HTML + D3 v7 (loaded from a CDN), served with `python3 -m http.server 5173` from inside `frontend/`. (Never open via file://.)
 - API base URL lives in **one constant** in the frontend (`frontend/js/api.js`).
 
@@ -124,6 +126,7 @@ Planned endpoints (adjust as we go):
 - GitHub repo: `chloe-j-brady/national-park-crowds` (https://github.com/chloe-j-brady/national-park-crowds). Local folder is still named `CIS4930-A2` — that's fine. Commit early and often.
 - `.gitignore` excludes virtual environments, `__pycache__`, `.ipynb_checkpoints`, `node_modules`, `.env`, `.DS_Store`.
 - **GitHub Pages** can only serve from the repo root or a `/docs` folder. If we deploy, rename `frontend/` → `docs/` (`git mv frontend docs`) and update the README. The backend would go on Render (free tier). Decide by Nov 3; localhost-only is fully acceptable for grading.
+- **If we deploy: add the deployed frontend's address (e.g. `https://chloe-j-brady.github.io`) to `ALLOWED_ORIGINS` in `backend/main.py`.** Otherwise the browser blocks every API response and the dashboard loads empty. Also point the API base URL in `frontend/js/api.js` at the Render backend.
 - The dataset is small, so it is committed to the repo.
 
 ## Milestones
