@@ -216,7 +216,27 @@ svg {
   stroke-width: 2;
 }
 
+/* The line and dots sit above the brush but let the mouse pass through to it */
+.month-line,
+.month-dot {
+  pointer-events: none;
+}
+
 .empty-message {
   fill: var(--text-secondary);
   font-size: 14px;
+}
+
+/* ---------- Linking ---------- */
+
+/* Region bars are clickable (Pair 1) */
+#region-chart .bar {
+  cursor: pointer;
+}
+
+/* Month brush (Pair 2): a light gray band over the selected months */
+.brush .selection {
+  fill: var(--text-secondary);
+  fill-opacity: 0.12;
+  stroke: var(--axis);
 }

@@ -6,10 +6,11 @@ const PARK_LAYOUT = {
   margin: { top: 36, right: 36, bottom: 4, left: 160 },
 };
 
-// Every park is a National Park, so drop the repeated suffix to save space:
-// "Gates of the Arctic NP & PRES" -> "Gates of the Arctic", "Zion NP" -> "Zion"
+// Every park is a National Park, so drop the repeated wording to save space:
+// "Gates of the Arctic NP & PRES" -> "Gates of the Arctic", "Zion NP" -> "Zion",
+// "National Park of American Samoa" -> "American Samoa"
 function shortParkName(name) {
-  return name.replace(" NP & PRES", "").replace(" NP", "");
+  return name.replace(" NP & PRES", "").replace(" NP", "").replace("National Park of ", "");
 }
 
 // Turn the monthly rows into one summary object per park, busiest first
@@ -55,12 +56,12 @@ function setupParkRanking() {
   plot.append("g").attr("class", "axis x-axis");
   plot.append("g").attr("class", "axis y-axis park-names");
 
+  // Text is set in updateParkRanking(), since it depends on the month selection
   plot.append("text")
-    .attr("class", "axis-title")
+    .attr("class", "axis-title x-title")
     .attr("x", innerWidth / 2)
     .attr("y", -26)
-    .attr("text-anchor", "middle")
-    .text("Avg. visits per year");
+    .attr("text-anchor", "middle");
 
   plot.append("text")
     .attr("class", "empty-message")
@@ -126,7 +127,8 @@ function updateParkRanking(rows) {
       .attr("class", "bar-label")
       .attr("x", 4)
       .attr("y", d => y(d.park) + y.bandwidth() / 2))
-    .text(d => formatVisits(d.avgPerYear))
+    // 0 visits means the park was closed in those months every year (e.g. Alaska in winter)
+    .text(d => d.avgPerYear === 0 ? "closed" : formatVisits(d.avgPerYear))
     .transition()
     .duration(duration)
     .attr("x", d => x(d.avgPerYear) + 4)
@@ -142,6 +144,16 @@ function updateParkRanking(rows) {
     .transition()
     .duration(duration)
     .call(d3.axisLeft(y).tickSize(0).tickPadding(6).tickFormat(shortParkName));
+
+  // With months brushed, the numbers only cover those months, so the labels must say so
+  if (state.monthRange === null) {
+    plot.select(".x-title").text("Avg. visits per year");
+    d3.select("#park-caption").text("Average recreation visits per year, 2022–2025. Bar color shows NPS region.");
+  } else {
+    const months = formatMonthRange(state.monthRange);
+    plot.select(".x-title").text("Avg. visits in the selected months");
+    d3.select("#park-caption").text("Average recreation visits in the selected months (" + months + " of each year, 2022–2025). Bar color shows NPS region.");
+  }
 
   // Empty state: show a message and hide the value axis (its [0, 1] placeholder ticks mean nothing)
   const isEmpty = parks.length === 0;

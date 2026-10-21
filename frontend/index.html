@@ -16,7 +16,7 @@
     <!-- Header bar: what's selected, a way to clear it, and the one legend for every view -->
     <div class="status-bar">
       <span id="selection-label">Showing: all regions · all months</span>
-      <!-- Disabled until linking adds a selection to clear -->
+      <!-- Disabled until something is selected (see render() in state.js) -->
       <button id="clear-button" type="button" disabled>Clear</button>
       <div id="region-legend" class="legend"></div>
     </div>
@@ -27,46 +27,46 @@
         <section class="view">
           <h2>Which regions have the busiest parks?</h2>
           <div id="region-chart"></div>
-          <p class="caption">Average recreation visits per park per year, by NPS region (2022–2025). Labels show how many parks each region has.</p>
+          <p id="region-caption" class="caption">Average recreation visits per park per year, by NPS region (2022–2025). Labels show how many parks each region has.</p>
         </section>
 
         <section class="view">
           <h2>When are the parks busiest?</h2>
           <div id="month-chart"></div>
-          <p class="caption">Average recreation visits in each calendar month, all parks combined, 2022–2025.</p>
+          <p id="month-caption" class="caption">Average recreation visits in each calendar month, all parks combined, 2022–2025.</p>
         </section>
       </div>
 
       <section class="view">
         <h2>Which parks are busiest, and which are quiet?</h2>
         <div id="park-chart"></div>
-        <p class="caption">Average recreation visits per year, 2022–2025. Bar color shows NPS region.</p>
+        <p id="park-caption" class="caption">Average recreation visits per year, 2022–2025. Bar color shows NPS region.</p>
       </section>
     </div>
   </main>
 
-  <!-- Order matters: D3 first, then colors.js (used by every view), then the views -->
+  <!-- Order matters: D3 first, then colors.js (used by every view), then the views, then state.js -->
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
   <script src="js/api.js"></script>
   <script src="js/colors.js"></script>
   <script src="js/regionBars.js"></script>
   <script src="js/monthlyLine.js"></script>
   <script src="js/parkRanking.js"></script>
+  <script src="js/state.js"></script>
   <script>
     async function start() {
       try {
-        const rows = await fetchVisits();
+        allRows = await fetchVisits(); // stored once in state.js; views get filtered copies
 
         // Build each view's empty frame once...
         drawRegionLegend("#region-legend");
         setupRegionBars();
         setupMonthlyLine();
         setupParkRanking();
+        d3.select("#clear-button").on("click", clearSelection);
 
-        // ...then fill it with data. Linking will call these again with filtered rows.
-        updateRegionBars(rows);
-        updateMonthlyLine(rows);
-        updateParkRanking(rows);
+        // ...then draw everything from the (empty) selection. Every click or brush calls render() again.
+        render();
       } catch (error) {
         console.error(error);
         document.querySelector("#region-chart").innerHTML =

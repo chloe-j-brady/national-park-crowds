@@ -56,6 +56,14 @@ function setupRegionBars() {
     .attr("class", "plot")
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
+  // Invisible background behind the bars: clicking empty space clears the region selection
+  plot.append("rect")
+    .attr("class", "background")
+    .attr("width", innerWidth)
+    .attr("height", innerHeight)
+    .attr("fill", "transparent")
+    .on("click", () => setRegion(null));
+
   plot.append("g")
     .attr("class", "axis x-axis")
     .attr("transform", `translate(0, ${innerHeight})`);
@@ -63,7 +71,7 @@ function setupRegionBars() {
   plot.append("g")
     .attr("class", "axis y-axis");
 
-  // Axis titles don't change, so they're drawn here once
+  // The x title never changes; the y title's text is set in updateRegionBars()
   plot.append("text")
     .attr("class", "axis-title")
     .attr("x", innerWidth / 2)
@@ -72,12 +80,11 @@ function setupRegionBars() {
     .text("NPS region");
 
   plot.append("text")
-    .attr("class", "axis-title")
+    .attr("class", "axis-title y-title")
     .attr("transform", "rotate(-90)") // rotated, so x now moves up/down and y left/right
     .attr("x", -innerHeight / 2)
     .attr("y", -48)
-    .attr("text-anchor", "middle")
-    .text("Visits per park per year"); // short enough to fit the shorter chart
+    .attr("text-anchor", "middle");
 
   // Shown only when no data matches
   plot.append("text")
@@ -113,9 +120,12 @@ function updateRegionBars(rows) {
   const formatVisits = d3.format(".2s");
   const duration = 300;
 
+  // When a region is selected, every other region fades
+  const opacity = d => (state.region === null || d.region === state.region) ? 1 : 0.25;
+
   // Bars. The key function (d => d.region) keeps each bar attached to its region.
   // New bars start flat on the baseline, then grow during the transition.
-  // Color is set on enter only: a region's color never changes.
+  // Color and the click handler are set on enter only: they never change.
   plot.selectAll(".bar")
     .data(regions, d => d.region)
     .join(enter => enter.append("rect")
@@ -123,13 +133,16 @@ function updateRegionBars(rows) {
       .attr("x", d => x(d.region))
       .attr("y", innerHeight)
       .attr("height", 0)
-      .attr("fill", d => REGION_COLORS[d.region]))
+      .attr("fill", d => REGION_COLORS[d.region])
+      // Pair 1: clicking a bar selects its region; clicking the selected bar again deselects it
+      .on("click", (event, d) => setRegion(state.region === d.region ? null : d.region)))
     .transition()
     .duration(duration)
     .attr("x", d => x(d.region))
     .attr("y", d => y(d.avgPerParkYear))
     .attr("width", x.bandwidth())
-    .attr("height", d => innerHeight - y(d.avgPerParkYear));
+    .attr("height", d => innerHeight - y(d.avgPerParkYear))
+    .attr("opacity", opacity);
 
   // Label above each bar, line 1: the value
   plot.selectAll(".bar-value")
@@ -143,7 +156,8 @@ function updateRegionBars(rows) {
     .transition()
     .duration(duration)
     .attr("x", d => x(d.region) + x.bandwidth() / 2)
-    .attr("y", d => y(d.avgPerParkYear) - 22);
+    .attr("y", d => y(d.avgPerParkYear) - 22)
+    .attr("opacity", opacity);
 
   // Label above each bar, line 2: how many parks the region has
   plot.selectAll(".bar-parks")
@@ -157,7 +171,8 @@ function updateRegionBars(rows) {
     .transition()
     .duration(duration)
     .attr("x", d => x(d.region) + x.bandwidth() / 2)
-    .attr("y", d => y(d.avgPerParkYear) - 7);
+    .attr("y", d => y(d.avgPerParkYear) - 7)
+    .attr("opacity", opacity);
 
   // Axes animate to their new scales along with the bars
   plot.select(".x-axis")
@@ -169,6 +184,16 @@ function updateRegionBars(rows) {
     .transition()
     .duration(duration)
     .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format("~s")));
+
+  // With months brushed, the numbers only cover those months, so the labels must say so
+  if (state.monthRange === null) {
+    plot.select(".y-title").text("Visits per park per year");
+    d3.select("#region-caption").text("Average recreation visits per park per year, by NPS region (2022–2025). Labels show how many parks each region has.");
+  } else {
+    const months = formatMonthRange(state.monthRange);
+    plot.select(".y-title").text("Visits per park, selected months");
+    d3.select("#region-caption").text("Average recreation visits per park in the selected months (" + months + " of each year, 2022–2025). Labels show how many parks each region has.");
+  }
 
   // Empty state: show a message and hide the value axis (its [0, 1] placeholder ticks mean nothing)
   const isEmpty = regions.length === 0;

@@ -135,9 +135,9 @@ Planned endpoints (adjust as we go):
 - [x] Oct 20 — data downloaded and sanity-checked
 - [x] Oct 22 — exploratory checks done, question locked in (finished Oct 20)
 - [ ] Oct 23 — paper sketch (photograph it for the write-up)
-- [ ] Oct 25 — backend running with one endpoint; one view fetching from it
-- [ ] Nov 1 — all three core views built
-- [ ] Nov 3 — both coordination pairs working, selection visible + clearable
+- [x] Oct 25 — backend running with one endpoint; one view fetching from it (done Oct 20)
+- [x] Nov 1 — all three core views built (done Oct 21)
+- [x] Nov 3 — both coordination pairs working, selection visible + clearable (done Oct 21)
 - [ ] Nov 3+ — stretch views only if core is done
 - [ ] Nov 6 — deploy (or confirm README works from a fresh clone)
 - [ ] Nov 7 — record video, write report
@@ -163,3 +163,17 @@ Record design decisions and their reasons here as they happen, plus anything tha
   - **Per year, not the 4-year total:** "visits per year" matches how a trip planner thinks and is easier to read. The number of years is counted from the data, not hard-coded.
   - **Region colors loosely match each landscape:** Intermountain brown (red rock), Pacific West blue (ocean), Alaska violet (northern lights), Southeast green (forests and swamps), Northeast magenta (autumn foliage), Midwest olive gold (prairie). The colors make the regions memorable without a legend lookup.
   - **Colors were checked, not eyeballed:** all six are dark enough to read on white (≥3:1 contrast) and were checked with a colorblind-vision simulator. No 6 landscape hues keep every pair far apart for colorblind viewers; this set was the best of ~150k candidates, so **color is never the only cue** — every view also names regions in text (axis labels, legend, tooltips).
+- Oct 21 (layout):
+  - **Two columns, all views on one screen** (14" laptop, ~1512×830 px in Chrome): region bars + monthly line on the left, ranking on the right. The ranking sets the page height, so its rows are 8.8 px with 10 px names (all 63 parks visible). Rejected: a scrolling ranking — it would hide the quietest parks, which are the answer to "where can you escape the crowds?".
+  - **One shared region legend in the header bar**, not inside one view: color means region in every view.
+  - Below 1100 px wide the views stack in one column. Limitation: on a 1280×720 screen the page scrolls about 100 px.
+- Oct 21 (linking):
+  - **One state object `{ region, monthRange }` in `state.js`.** Views read it; only `setRegion` / `setMonthRange` / `clearSelection` change it, and each ends with `render()`, which redraws all views. Views never call each other.
+  - **A view is never filtered by its own selection:** region bars get rows filtered by months only, the monthly line by region only, the ranking by both. Otherwise clicking a region would delete the other five bars, and brushing would cut the line down to the brushed months — you could no longer see or change the selection.
+  - **Region bars keep all six bars and fade the unselected ones** (25% opacity), so you can still compare and switch regions. Clicking the selected bar again, or empty space, deselects.
+  - **Brush snaps to whole months:** a month counts if its dot is inside the brush (with a tiny tolerance, since pixel-to-month math isn't exact). The brush is redrawn from the state, which snaps it and lets Clear remove it.
+  - **All value axes rescale to the selection** (region bars, line, ranking). Fixed axes would flatten small selections (e.g. Alaska is ~1/50 the size of the busiest region). Transitions make the rescaling visible.
+  - **The monthly line takes the selected region's color**, so Pair 1's effect is visible in the line itself.
+  - **Labels follow the selection:** with months brushed, axis titles and captions say "in the selected months (Jun–Aug of each year)" instead of "per year".
+  - **Parks with 0 visits in the selected months are labelled "closed"** (e.g. Lake Clark and Gates of the Arctic in January).
+  - Tested both pairs with simulated clicks and brush drags in real-time headless Chrome; numbers checked against pandas.
