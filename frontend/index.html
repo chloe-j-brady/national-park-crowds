@@ -20,6 +20,12 @@
     </section>
 
     <section class="view">
+      <h2>When are the parks busiest?</h2>
+      <div id="month-chart"></div>
+      <p class="caption">Average recreation visits in each calendar month, all parks combined, 2022–2025.</p>
+    </section>
+
+    <section class="view">
       <h2>Which parks are busiest, and which are quiet?</h2>
       <div id="park-legend" class="legend"></div>
       <div id="park-chart"></div>
@@ -32,6 +38,7 @@
   <script src="js/api.js"></script>
   <script src="js/colors.js"></script>
   <script src="js/regionBars.js"></script>
+  <script src="js/monthlyLine.js"></script>
   <script src="js/parkRanking.js"></script>
   <script>
     async function start() {
@@ -40,11 +47,13 @@
 
         // Build each view's empty frame once...
         setupRegionBars();
+        setupMonthlyLine();
         setupParkRanking();
         drawRegionLegend("#park-legend");
 
         // ...then fill it with data. Linking will call these again with filtered rows.
         updateRegionBars(rows);
+        updateMonthlyLine(rows);
         updateParkRanking(rows);
       } catch (error) {
         console.error(error);

@@ -132,6 +132,17 @@ svg {
   dominant-baseline: middle; /* centers the text on its y position */
 }
 
+/* Monthly line: a 2px line with no fill, dots with a white outline so they stand out on the line */
+.month-line {
+  fill: none;
+  stroke-width: 2;
+}
+
+.month-dot {
+  stroke: var(--card);
+  stroke-width: 2;
+}
+
 .empty-message {
   fill: var(--text-secondary);
   font-size: 14px;
