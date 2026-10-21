@@ -29,9 +29,8 @@ Downloaded via Reports → National Reports → Query Builder for Public Use Sta
 **Scope:** all 63 units designated "National Park", **Jan 2022 – Dec 2025**.
 **Why 2022–2025:** the audience is planning trips now; 2020–2021 are distorted by COVID closures, and older patterns no longer describe current crowds. No pre-COVID data — a deliberate design decision (goes in the write-up).
 
-**Draft question** (to confirm after exploratory analysis):
-> "When and where can you escape the national park crowds?"
-> Core version if time is short: "Are a few famous parks taking all the crowds, and where can you go instead?"
+**Question (locked in Oct 20, after exploratory analysis in `notebooks/explore.ipynb`):**
+> "Half of all national park visits go to just 10 parks, mostly in July. When and where can you escape the crowds?"
 
 **Audience:** trip planners / the general public.
 
@@ -67,8 +66,8 @@ Downloaded via Reports → National Reports → Query Builder for Public Use Sta
 |---|---|---|---|
 | Region bar chart | Where do the visits go? | Tooltip, hover highlight | core |
 | Park ranking (horizontal bars, busiest → quietest) | Which parks are busy vs quiet? | Tooltip, hover highlight | core |
-| Monthly visits line (Jan 2022–Dec 2025, or an average Jan–Dec year) | When are parks busy or quiet? | Tooltip, month brush (d3.brushX) | core |
-| Seasonality heatmap (park × month, share of yearly visits) | When is the quiet time to go? | Tooltip | stretch |
+| Monthly visits line (average Jan–Dec year, 2022–2025) | When are parks busy or quiet? | Tooltip, month brush (d3.brushX) | core |
+| Seasonality heatmap (park × month, share of yearly visits) | When is the quiet time to go? | Tooltip | stretch — likely 4th view |
 | Map of parks | Where are they? | Tooltip, click to select | stretch / extra credit |
 
 ## Coordination pairs
@@ -130,7 +129,7 @@ Planned endpoints (adjust as we go):
 ## Milestones
 
 - [x] Oct 20 — data downloaded and sanity-checked
-- [ ] Oct 22 — exploratory checks done, question locked in
+- [x] Oct 22 — exploratory checks done, question locked in (finished Oct 20)
 - [ ] Oct 23 — paper sketch (photograph it for the write-up)
 - [ ] Oct 25 — backend running with one endpoint; one view fetching from it
 - [ ] Nov 1 — all three core views built
@@ -147,3 +146,11 @@ Record design decisions and their reasons here as they happen, plus anything tha
 - Oct 20: Scoped to 2022–2025 for a trip-planner audience (see Project).
 - Oct 20: Kept all 84 zero-visit months — they are real seasonal or temporary closures, not missing data.
 - Oct 20: Chose plain HTML + D3 over React to keep the code simple to explain and avoid React/D3 DOM conflicts with brushing.
+- Oct 20 (exploration findings, `notebooks/explore.ipynb`):
+  - **Top 10 parks get 52.1% of all visits** (an even split would be 15.9%). Great Smoky Mountains alone gets 13.5%.
+  - **July is the busiest month and January the quietest in every year, 2022–2025.** Jun–Aug = 41% of the year; the monthly pattern is nearly identical year to year.
+  - **→ Monthly line uses an average Jan–Dec year**, not the 48-month timeline: the years are consistent enough that averaging hides little, and a 12-month axis is easier to brush ("I'd travel Jun–Aug").
+  - **20 of 63 parks do not peak in Jun–Aug.** 9 peak in March (desert/southern parks: Big Bend, Joshua Tree, Death Valley, Saguaro, White Sands, etc.); Big Bend gets only 11% of its year in summer. Alaska parks and Isle Royale are the opposite (64–88% in summer).
+  - **Great Smoky Mountains (and Shenandoah) peak in October** (likely fall color), not summer.
+  - **→ Heatmap is the likely 4th view:** per-park share of yearly visits shows these different seasons, which national totals hide.
+  - **Caveat — heat:** a park that's quiet in summer is often quiet because it's dangerously hot (desert parks). "Quiet" ≠ "pleasant"; say so in captions and the write-up. Visit counts say nothing about weather or access.
