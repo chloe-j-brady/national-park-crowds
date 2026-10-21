@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Escaping the Crowds</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Escaping the Crowds</h1>
+      <p class="subtitle">Recreation visits to U.S. national parks, 2022–2025</p>
+    </header>
+
+    <section class="view">
+      <h2>Which regions have the busiest parks?</h2>
+      <div id="region-chart"></div>
+      <p class="caption">Average recreation visits per park per year, by NPS region (2022–2025). Labels show how many parks each region has.</p>
+    </section>
+  </main>
+
+  <!-- Order matters: D3 first, then our files that use it -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/regionBars.js"></script>
+  <script>
+    async function start() {
+      try {
+        const rows = await fetchVisits();
+        drawRegionBars(rows);
+      } catch (error) {
+        console.error(error);
+        document.querySelector("#region-chart").innerHTML =
+          '<p class="message">Couldn’t load data — is the backend running on port 8000?</p>';
+      }
+    }
+
+    start();
+  </script>
+</body>
+</html>

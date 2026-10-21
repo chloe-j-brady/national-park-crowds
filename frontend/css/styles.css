@@ -1,0 +1,91 @@
+/* Colors used for text, axes and backgrounds (data colors live in js/) */
+:root {
+  --surface: #fcfcfb;
+  --card: #ffffff;
+  --border: #e6e5e0;
+  --text-primary: #1f1f1e;
+  --text-secondary: #5c5b55;
+  --axis: #c9c8c1;
+}
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.subtitle {
+  margin: 4px 0 32px;
+  color: var(--text-secondary);
+}
+
+/* Each chart sits on its own white card */
+.view {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.view h2 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.caption {
+  margin: 8px 0 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.message {
+  color: var(--text-secondary);
+  padding: 48px 0;
+  text-align: center;
+}
+
+/* Chart text and axes: quiet gray, so the bars stand out */
+svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.axis path,
+.axis line {
+  stroke: var(--axis);
+}
+
+.axis text {
+  fill: var(--text-secondary);
+  font-size: 13px;
+}
+
+.axis-title {
+  fill: var(--text-secondary);
+  font-size: 13px;
+}
+
+.bar-value {
+  fill: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.bar-parks {
+  fill: var(--text-secondary);
+  font-size: 12px;
+}
