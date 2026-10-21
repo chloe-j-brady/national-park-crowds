@@ -1,9 +1,9 @@
 // Layout numbers for this chart. Named REGION_... because all our script files share
 // one global namespace, so two files can't both declare "margin".
 const REGION_LAYOUT = {
-  width: 720,
-  height: 400,
-  margin: { top: 44, right: 16, bottom: 56, left: 72 },
+  width: 800,
+  height: 250,
+  margin: { top: 40, right: 16, bottom: 44, left: 64 },
 };
 
 // Turn the monthly rows into one summary object per region, busiest parks first
@@ -67,7 +67,7 @@ function setupRegionBars() {
   plot.append("text")
     .attr("class", "axis-title")
     .attr("x", innerWidth / 2)
-    .attr("y", innerHeight + 44)
+    .attr("y", innerHeight + 36)
     .attr("text-anchor", "middle")
     .text("NPS region");
 
@@ -75,9 +75,9 @@ function setupRegionBars() {
     .attr("class", "axis-title")
     .attr("transform", "rotate(-90)") // rotated, so x now moves up/down and y left/right
     .attr("x", -innerHeight / 2)
-    .attr("y", -54)
+    .attr("y", -48)
     .attr("text-anchor", "middle")
-    .text("Avg. visits per park per year");
+    .text("Visits per park per year"); // short enough to fit the shorter chart
 
   // Shown only when no data matches
   plot.append("text")

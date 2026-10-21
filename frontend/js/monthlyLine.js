@@ -1,8 +1,8 @@
 // Layout numbers for this chart (named MONTH_... because all script files share one namespace)
 const MONTH_LAYOUT = {
-  width: 720,
-  height: 320,
-  margin: { top: 20, right: 24, bottom: 56, left: 72 },
+  width: 800,
+  height: 250,
+  margin: { top: 12, right: 20, bottom: 44, left: 64 },
 };
 
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -67,7 +67,7 @@ function setupMonthlyLine() {
   plot.append("text")
     .attr("class", "axis-title")
     .attr("x", innerWidth / 2)
-    .attr("y", innerHeight + 44)
+    .attr("y", innerHeight + 36)
     .attr("text-anchor", "middle")
     .text("Month");
 
@@ -75,7 +75,7 @@ function setupMonthlyLine() {
     .attr("class", "axis-title")
     .attr("transform", "rotate(-90)")
     .attr("x", -innerHeight / 2)
-    .attr("y", -54)
+    .attr("y", -48)
     .attr("text-anchor", "middle")
     .text("Avg. visits per month");
 

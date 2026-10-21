@@ -13,27 +13,39 @@
       <p class="subtitle">Half of all national park visits go to just 10 parks, mostly in July. When and where can you escape the crowds?</p>
     </header>
 
-    <section class="view">
-      <h2>Which regions have the busiest parks?</h2>
-      <div id="region-chart"></div>
-      <p class="caption">Average recreation visits per park per year, by NPS region (2022–2025). Labels show how many parks each region has.</p>
-    </section>
+    <!-- Header bar: what's selected, a way to clear it, and the one legend for every view -->
+    <div class="status-bar">
+      <span id="selection-label">Showing: all regions · all months</span>
+      <!-- Disabled until linking adds a selection to clear -->
+      <button id="clear-button" type="button" disabled>Clear</button>
+      <div id="region-legend" class="legend"></div>
+    </div>
 
-    <section class="view">
-      <h2>When are the parks busiest?</h2>
-      <div id="month-chart"></div>
-      <p class="caption">Average recreation visits in each calendar month, all parks combined, 2022–2025.</p>
-    </section>
+    <!-- Two columns: region bars + monthly line on the left, the ranking on the right -->
+    <div class="dashboard">
+      <div class="left-column">
+        <section class="view">
+          <h2>Which regions have the busiest parks?</h2>
+          <div id="region-chart"></div>
+          <p class="caption">Average recreation visits per park per year, by NPS region (2022–2025). Labels show how many parks each region has.</p>
+        </section>
 
-    <section class="view">
-      <h2>Which parks are busiest, and which are quiet?</h2>
-      <div id="park-legend" class="legend"></div>
-      <div id="park-chart"></div>
-      <p class="caption">Average recreation visits per year, 2022–2025, busiest to quietest. Bars are colored by NPS region.</p>
-    </section>
+        <section class="view">
+          <h2>When are the parks busiest?</h2>
+          <div id="month-chart"></div>
+          <p class="caption">Average recreation visits in each calendar month, all parks combined, 2022–2025.</p>
+        </section>
+      </div>
+
+      <section class="view">
+        <h2>Which parks are busiest, and which are quiet?</h2>
+        <div id="park-chart"></div>
+        <p class="caption">Average recreation visits per year, 2022–2025. Bar color shows NPS region.</p>
+      </section>
+    </div>
   </main>
 
-  <!-- Order matters: D3 first, then colors.js (used by both views), then the views -->
+  <!-- Order matters: D3 first, then colors.js (used by every view), then the views -->
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
   <script src="js/api.js"></script>
   <script src="js/colors.js"></script>
@@ -46,10 +58,10 @@
         const rows = await fetchVisits();
 
         // Build each view's empty frame once...
+        drawRegionLegend("#region-legend");
         setupRegionBars();
         setupMonthlyLine();
         setupParkRanking();
-        drawRegionLegend("#park-legend");
 
         // ...then fill it with data. Linking will call these again with filtered rows.
         updateRegionBars(rows);

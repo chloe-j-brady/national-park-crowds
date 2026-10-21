@@ -2,8 +2,8 @@
 // Bars have a fixed thickness; the chart's height follows how many parks are shown.
 const PARK_LAYOUT = {
   width: 480,
-  rowHeight: 11.5, // 63 parks x 11.5px = about 725px of bars
-  margin: { top: 44, right: 40, bottom: 8, left: 170 },
+  rowHeight: 8.8, // 63 parks x 8.8px = about 555px of bars, so the whole ranking fits on a laptop screen
+  margin: { top: 36, right: 36, bottom: 4, left: 160 },
 };
 
 // Every park is a National Park, so drop the repeated suffix to save space:
@@ -58,7 +58,7 @@ function setupParkRanking() {
   plot.append("text")
     .attr("class", "axis-title")
     .attr("x", innerWidth / 2)
-    .attr("y", -30)
+    .attr("y", -26)
     .attr("text-anchor", "middle")
     .text("Avg. visits per year");
 
