@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Node (in case it's ever used)
+node_modules/
+
+# Secrets
+.env
+
+# OS junk
+.DS_Store
+Thumbs.db
