@@ -122,7 +122,7 @@ Planned endpoints (adjust as we go):
 
 ## GitHub and deployment
 
-- Public repo name: `CIS4930-A2`. Commit early and often.
+- GitHub repo: `chloe-j-brady/national-park-crowds` (https://github.com/chloe-j-brady/national-park-crowds). Local folder is still named `CIS4930-A2` — that's fine. Commit early and often.
 - `.gitignore` excludes virtual environments, `__pycache__`, `.ipynb_checkpoints`, `node_modules`, `.env`, `.DS_Store`.
 - **GitHub Pages** can only serve from the repo root or a `/docs` folder. If we deploy, rename `frontend/` → `docs/` (`git mv frontend docs`) and update the README. The backend would go on Render (free tier). Decide by Nov 3; localhost-only is fully acceptable for grading.
 - The dataset is small, so it is committed to the repo.
