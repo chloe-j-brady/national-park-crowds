@@ -7,10 +7,12 @@ from fastapi.middleware.cors import CORSMiddleware
 # Build the path from this file's folder, so it works no matter where uvicorn is started
 DATA_PATH = Path(__file__).parent / "data" / "raw" / "nps_visits_raw.csv"
 
-# The frontend's address (python3 -m http.server 5173). Add the deployed site's address here if we deploy.
+# Pages allowed to read our responses (CORS): the local frontend (python3 -m http.server 5173)
+# and the GitHub Pages site. An origin is only scheme + host: no path, no trailing slash.
 ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://chloe-j-brady.github.io",
 ]
 
 

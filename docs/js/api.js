@@ -1,6 +1,8 @@
 // The only place the frontend knows where the backend lives.
-// If we deploy, change this one line to the deployed backend's address.
-const API_BASE = "http://localhost:8000";
+// Opened on this computer (localhost / 127.0.0.1) -> the local backend.
+// Opened anywhere else (the GitHub Pages site) -> the backend deployed on Render.
+const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const API_BASE = isLocal ? "http://localhost:8000" : "https://national-park-crowds.onrender.com";
 
 // Fetch all cleaned monthly rows (one per park per month) from the backend
 async function fetchVisits() {

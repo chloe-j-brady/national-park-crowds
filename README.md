@@ -2,7 +2,11 @@
 
 An interactive dashboard that helps trip planners find when and where to visit U.S. national parks without the crowds. Built for CIS 4930 Introduction to Data Visualization (FSU, Fall 2026), Assignment 2.
 
-**Live site:** _coming soon_ (or: runs on localhost, see below)
+**Live site:** https://chloe-j-brady.github.io/national-park-crowds/
+
+The backend runs on Render's free tier, which sleeps after about 15 minutes without visitors.
+**The first load can take up to a minute** while it wakes up; after that the dashboard is fast.
+If you see "Couldn't load data", wait a minute and reload the page.
 
 ## Data
 
@@ -40,7 +44,7 @@ The API docs are at http://localhost:8000/docs.
 **Terminal 2 — frontend (port 5173):**
 
 ```bash
-cd frontend
+cd docs
 python3 -m http.server 5173
 ```
 
@@ -48,10 +52,19 @@ Then open http://localhost:5173 in your browser.
 
 No API keys or environment variables are needed.
 
+## How the deployed version works
+
+- **Frontend:** GitHub Pages serves the `docs/` folder (Pages can only serve the repo root or `/docs`).
+- **Backend:** https://national-park-crowds.onrender.com (the data is at `/api/visits`).
+- The page picks its API address automatically (`docs/js/api.js`): `http://localhost:8000` when
+  opened on localhost, the Render address everywhere else. So the same code works locally and online.
+- The backend's CORS list (`ALLOWED_ORIGINS` in `backend/main.py`) allows `http://localhost:5173`
+  and `https://chloe-j-brady.github.io`.
+
 ## Project structure
 
 ```
 backend/    FastAPI server that loads and serves the data
-frontend/   HTML + D3 dashboard
+docs/       HTML + D3 dashboard (served by GitHub Pages)
 notebooks/  Exploratory analysis
 ```

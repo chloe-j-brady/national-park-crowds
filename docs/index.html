@@ -26,6 +26,8 @@
       <div class="left-column">
         <section class="view">
           <h2>Which regions have the busiest parks?</h2>
+          <!-- Shown while the data loads (the free server can take up to a minute to wake up) -->
+          <p id="loading-message" class="message">Loading data…</p>
           <div id="region-chart"></div>
           <p id="region-caption" class="caption">Average recreation visits per park per year, by NPS region (2022–2025). Labels show how many parks each region has.</p>
         </section>
@@ -66,6 +68,7 @@
     async function start() {
       try {
         allRows = await fetchVisits(); // stored once in state.js; views get filtered copies
+        d3.select("#loading-message").remove();
 
         // Build each view's empty frame once...
         drawRegionLegend("#region-legend");
@@ -83,8 +86,9 @@
         render();
       } catch (error) {
         console.error(error);
+        d3.select("#loading-message").remove();
         document.querySelector("#region-chart").innerHTML =
-          '<p class="message">Couldn’t load data — is the backend running on port 8000?</p>';
+          '<p class="message">Couldn’t load data. The server may take up to a minute to wake up — please reload the page in a minute.</p>';
       }
     }
 
