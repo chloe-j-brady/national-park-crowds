@@ -1,5 +1,6 @@
 /* Colors used for text, axes and backgrounds (data colors live in js/) */
 :root {
+  --hover-band: #f0efea;
   --surface: #fcfcfb;
   --card: #ffffff;
   --border: #e6e5e0;
@@ -55,7 +56,8 @@ h1 {
   font-weight: 600;
 }
 
-#clear-button {
+/* Shared button look (Clear, Play) */
+.button {
   font: inherit;
   padding: 3px 12px;
   border: 1px solid var(--axis);
@@ -65,8 +67,8 @@ h1 {
   cursor: pointer;
 }
 
-/* Grayed out while there's nothing to clear */
-#clear-button:disabled {
+/* Grayed out while disabled (Clear, while there's nothing to clear) */
+.button:disabled {
   color: var(--axis);
   border-color: var(--border);
   cursor: default;
@@ -132,6 +134,28 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 14px 18px;
+}
+
+/* Card title row with a button on the right (the monthly line's Play button) */
+.view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+/* .view .view-header h2 is more specific than .view h2 below, so this margin wins */
+.view .view-header h2 {
+  margin: 0;
+}
+
+/* Smaller button in a title row, so the row stays as tall as the title.
+   min-width keeps it from changing size between "Play" and "Pause". */
+.view-header .button {
+  padding: 0 10px;
+  font-size: 0.8125rem;
+  min-width: 6em;
 }
 
 .view h2 {
@@ -239,4 +263,59 @@ svg {
   fill: var(--text-secondary);
   fill-opacity: 0.12;
   stroke: var(--axis);
+}
+
+/* ---------- Tooltips and hover ---------- */
+
+/* position: fixed = placed relative to the window, using the mouse's clientX / clientY.
+   pointer-events: none so the tooltip never blocks the mouse. */
+#tooltip {
+  position: fixed;
+  display: none;
+  pointer-events: none;
+  z-index: 10;
+  max-width: 260px;
+  padding: 8px 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.tooltip-title {
+  margin-bottom: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Region bars: outline on hover (opacity already means selected / not selected) */
+#region-chart .bar.hovered {
+  stroke: var(--text-primary);
+  stroke-width: 1.5;
+}
+
+/* Park ranking: the invisible hover rows get the mouse, the bars and labels don't */
+.row-hit {
+  fill: transparent;
+}
+
+.row-hit.hovered {
+  fill: var(--hover-band);
+}
+
+#park-chart .bar,
+#park-chart .bar-label {
+  pointer-events: none;
+}
+
+/* Monthly line: dashed guide line at the hovered month */
+.hover-line {
+  stroke: var(--text-secondary);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
 }

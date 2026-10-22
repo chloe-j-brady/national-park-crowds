@@ -38,7 +38,29 @@ function summarizeByPark(rows) {
   }
 
   parks.sort((a, b) => b.avgPerYear - a.avgPerYear);
+
+  // Rank after sorting: busiest = 1 (shown in the tooltip)
+  for (let i = 0; i < parks.length; i++) {
+    parks[i].rank = i + 1;
+  }
   return parks;
+}
+
+// Tooltip for one park row: full official name, region and rank, exact visits
+function showParkTooltip(event, d, parkCount) {
+  let visitsLine;
+  if (state.monthRange === null) {
+    visitsLine = formatExact(d.avgPerYear) + " visits per year";
+  } else if (d.avgPerYear === 0) {
+    visitsLine = "Closed in " + formatMonthRange(state.monthRange) + " every year";
+  } else {
+    visitsLine = formatExact(d.avgPerYear) + " visits in " + formatMonthRange(state.monthRange) + " (avg. per year)";
+  }
+
+  showTooltip(event, d.park, [
+    d.region + " · rank " + d.rank + " of " + parkCount,
+    visitsLine,
+  ]);
 }
 
 // Runs once: create the SVG and the empty groups that updateParkRanking() fills in
@@ -51,6 +73,10 @@ function setupParkRanking() {
   const plot = svg.append("g")
     .attr("class", "plot")
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+  // Invisible full-width hover rows (filled in updateParkRanking). Created first, so their
+  // gray hover band is drawn BEHIND the names and bars.
+  plot.append("g").attr("class", "hit-rows");
 
   // The x axis goes at the TOP, so it's readable without scrolling down a tall chart
   plot.append("g").attr("class", "axis x-axis");
@@ -102,6 +128,28 @@ function updateParkRanking(rows) {
 
   const formatVisits = d3.format(".2s");
   const duration = 300;
+
+  // Hover rows: a 7px-tall bar (or a 1px one for a quiet park) is hard to point at, so each
+  // park gets an invisible rectangle covering its whole row, from the name to the right edge.
+  // y.step() is the full row height including the gap between bars, so the rows touch.
+  const gap = y.step() - y.bandwidth();
+  plot.select(".hit-rows").selectAll(".row-hit")
+    .data(parks, d => d.park)
+    .join("rect")
+    .attr("class", "row-hit")
+    .attr("x", -margin.left)
+    .attr("y", d => y(d.park) - gap / 2)
+    .attr("width", width)
+    .attr("height", y.step())
+    // Set on every update (not just enter), so parks.length is always the current count
+    .on("mouseenter mousemove", (event, d) => {
+      d3.select(event.currentTarget).classed("hovered", true);
+      showParkTooltip(event, d, parks.length);
+    })
+    .on("mouseleave", (event) => {
+      d3.select(event.currentTarget).classed("hovered", false);
+      hideTooltip();
+    });
 
   // Bars. The key function (d => d.park) keeps each bar attached to its park,
   // so a park that stays in the selection slides to its new row instead of being redrawn.

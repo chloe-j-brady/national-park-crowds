@@ -39,6 +39,22 @@ function summarizeByRegion(rows) {
   return regions;
 }
 
+// Tooltip for one region bar: exact visits per park, park count, and what a click will do
+function showRegionTooltip(event, d) {
+  const period = state.monthRange === null
+    ? "per year"
+    : "in " + formatMonthRange(state.monthRange) + " (avg. per year)";
+  const hint = state.region === d.region
+    ? "Click again to show all regions"
+    : "Click to show only this region";
+
+  showTooltip(event, d.region, [
+    formatExact(d.avgPerParkYear) + " visits per park " + period,
+    d.parkCount === 1 ? "1 park" : d.parkCount + " parks",
+    hint,
+  ]);
+}
+
 // Runs once: create the SVG and the empty groups that updateRegionBars() fills in
 function setupRegionBars() {
   const { width, height, margin } = REGION_LAYOUT;
@@ -125,7 +141,8 @@ function updateRegionBars(rows) {
 
   // Bars. The key function (d => d.region) keeps each bar attached to its region.
   // New bars start flat on the baseline, then grow during the transition.
-  // Color and the click handler are set on enter only: they never change.
+  // Color and event handlers are set on enter only: they never change.
+  // (D3 hands each handler the bar's CURRENT data, so the tooltip numbers stay up to date.)
   plot.selectAll(".bar")
     .data(regions, d => d.region)
     .join(enter => enter.append("rect")
@@ -135,7 +152,18 @@ function updateRegionBars(rows) {
       .attr("height", 0)
       .attr("fill", d => REGION_COLORS[d.region])
       // Pair 1: clicking a bar selects its region; clicking the selected bar again deselects it
-      .on("click", (event, d) => setRegion(state.region === d.region ? null : d.region)))
+      .on("click", (event, d) => {
+        setRegion(state.region === d.region ? null : d.region);
+        showRegionTooltip(event, d); // refresh the "Click to..." hint right away
+      })
+      .on("mouseenter mousemove", (event, d) => {
+        d3.select(event.currentTarget).classed("hovered", true);
+        showRegionTooltip(event, d);
+      })
+      .on("mouseleave", (event) => {
+        d3.select(event.currentTarget).classed("hovered", false);
+        hideTooltip();
+      }))
     .transition()
     .duration(duration)
     .attr("x", d => x(d.region))

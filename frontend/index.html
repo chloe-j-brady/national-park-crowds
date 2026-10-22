@@ -17,7 +17,7 @@
     <div class="status-bar">
       <span id="selection-label">Showing: all regions · all months</span>
       <!-- Disabled until something is selected (see render() in state.js) -->
-      <button id="clear-button" type="button" disabled>Clear</button>
+      <button id="clear-button" class="button" type="button" disabled>Clear</button>
       <div id="region-legend" class="legend"></div>
     </div>
 
@@ -31,7 +31,11 @@
         </section>
 
         <section class="view">
-          <h2>When are the parks busiest?</h2>
+          <!-- Title row: title on the left, Play button on the right (adds no height) -->
+          <div class="view-header">
+            <h2>When are the parks busiest?</h2>
+            <button id="play-button" class="button" type="button" aria-pressed="false">▶ Play</button>
+          </div>
           <div id="month-chart"></div>
           <p id="month-caption" class="caption">Average recreation visits in each calendar month, all parks combined, 2022–2025.</p>
         </section>
@@ -45,14 +49,19 @@
     </div>
   </main>
 
-  <!-- Order matters: D3 first, then colors.js (used by every view), then the views, then state.js -->
+  <!-- One tooltip shared by every view; filled and positioned by js/tooltip.js -->
+  <div id="tooltip"></div>
+
+  <!-- Order matters: D3 first, then colors.js (used by every view), then the views, then state.js and play.js -->
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
   <script src="js/api.js"></script>
   <script src="js/colors.js"></script>
+  <script src="js/tooltip.js"></script>
   <script src="js/regionBars.js"></script>
   <script src="js/monthlyLine.js"></script>
   <script src="js/parkRanking.js"></script>
   <script src="js/state.js"></script>
+  <script src="js/play.js"></script>
   <script>
     async function start() {
       try {
@@ -63,7 +72,12 @@
         setupRegionBars();
         setupMonthlyLine();
         setupParkRanking();
-        d3.select("#clear-button").on("click", clearSelection);
+        // Clear also stops the Play animation; otherwise the next tick would select a month again
+        d3.select("#clear-button").on("click", () => {
+          stopPlaying();
+          clearSelection();
+        });
+        d3.select("#play-button").on("click", togglePlaying);
 
         // ...then draw everything from the (empty) selection. Every click or brush calls render() again.
         render();

@@ -10,8 +10,19 @@ const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
 
 const LINE_COLOR = "#3d3d3a"; // neutral dark gray when no region is selected
 
-// Pair 2: the month brush. Its "end" event fires when the user lets go of the mouse.
-const monthBrush = d3.brushX().on("end", onBrushEnd);
+// Pair 2: the month brush. "start" fires when a drag begins, "end" when the user lets go.
+const monthBrush = d3.brushX()
+  .on("start", onBrushStart)
+  .on("end", onBrushEnd);
+
+// A drag by the user stops the Play animation. This has to happen when the drag STARTS:
+// otherwise the timer would keep moving the brush out from under the mouse.
+// (Moves made by our own code have no sourceEvent, so the animation doesn't stop itself.)
+function onBrushStart(event) {
+  if (event.sourceEvent) {
+    stopPlaying();
+  }
+}
 
 // x: a continuous scale from month 1 to 12. Unlike a band scale it has .invert(),
 // which the brush needs to turn pixels back into months. The domain never changes.
@@ -79,6 +90,48 @@ function onBrushEnd(event) {
   setMonthRange([firstMonth, lastMonth]);
 }
 
+// Pointer moved over the plot: highlight the nearest month and show its tooltip
+function onMonthHover(event) {
+  // A button is held down = the user is dragging a brush: no tooltip while brushing
+  if (event.buttons !== 0) {
+    onMonthLeave();
+    return;
+  }
+
+  const plot = d3.select("#month-chart .plot");
+  const months = plot.select(".month-line").datum(); // the 12 months currently drawn
+  const yearTotal = d3.sum(months, d => d.avgVisits);
+  if (yearTotal === 0) {
+    return; // empty state: nothing to describe
+  }
+
+  // Pointer position in the plot's own coordinates (d3.pointer handles the margins and
+  // any shrinking of the SVG), then the same inverse scale the brush uses -> nearest month
+  const x = monthXScale();
+  const [pointerX] = d3.pointer(event, plot.node());
+  const month = Math.max(1, Math.min(12, Math.round(x.invert(pointerX))));
+  const d = months[month - 1];
+
+  plot.select(".hover-line")
+    .attr("x1", x(month))
+    .attr("x2", x(month))
+    .style("display", null);
+  plot.selectAll(".month-dot").attr("r", m => m.month === month ? 6 : 4);
+
+  const who = state.region === null ? "all parks" : state.region + " parks";
+  showTooltip(event, MONTH_NAMES[month - 1], [
+    formatExact(d.avgVisits) + " avg. visits (" + who + ")",
+    d3.format(".0%")(d.avgVisits / yearTotal) + " of the year's visits",
+  ]);
+}
+
+function onMonthLeave() {
+  const plot = d3.select("#month-chart .plot");
+  plot.select(".hover-line").style("display", "none");
+  plot.selectAll(".month-dot").attr("r", 4);
+  hideTooltip();
+}
+
 // Runs once: create the SVG and the empty groups that updateMonthlyLine() fills in
 function setupMonthlyLine() {
   const { width, height, margin } = MONTH_LAYOUT;
@@ -109,7 +162,18 @@ function setupMonthlyLine() {
   monthBrush.extent([[0, 0], [innerWidth, innerHeight]]);
   plot.append("g")
     .attr("class", "brush")
-    .call(monthBrush);
+    .call(monthBrush)
+    // The brush layer covers the whole plot and gets all mouse events, so the tooltip
+    // listens here too and works out the nearest month from the pointer's x position
+    .on("pointermove", onMonthHover)
+    .on("pointerleave", onMonthLeave);
+
+  // Dashed vertical guide line at the hovered month (hidden until hover)
+  plot.append("line")
+    .attr("class", "hover-line")
+    .attr("y1", 0)
+    .attr("y2", innerHeight)
+    .style("display", "none");
 
   // One path for the whole line, then a group for the dots so they sit on top of it
   plot.append("path").attr("class", "month-line");
@@ -196,13 +260,17 @@ function updateMonthlyLine(rows) {
 
   // Draw the brush where the state says it should be. This also snaps a fresh brush to
   // whole months (edges halfway between dots), and removes it after Clear.
+  // It slides over the same 300ms as the bars, so Play and snapping read as one motion.
   if (state.monthRange === null) {
-    plot.select(".brush").call(monthBrush.move, null);
+    plot.select(".brush").call(monthBrush.move, null); // nothing to slide to: remove at once
   } else {
     const [range0, range1] = x.range();
     const left = Math.max(range0, x(state.monthRange[0] - 0.5));
     const right = Math.min(range1, x(state.monthRange[1] + 0.5));
-    plot.select(".brush").call(monthBrush.move, [left, right]);
+    plot.select(".brush")
+      .transition()
+      .duration(duration)
+      .call(monthBrush.move, [left, right]);
   }
 
   const regionText = state.region === null ? "all parks combined" : state.region + " parks only";
